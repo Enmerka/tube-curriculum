@@ -1,9 +1,9 @@
 import streamlit as st
-import openai
 import os
+from openai import OpenAI
 
-# Fetch OpenAI API key from environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize the OpenAI client with the API key from the environment
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Streamlit app UI
 st.title("Tube Curriculum: Personalized Learning Path Generator")
@@ -22,16 +22,18 @@ if submitted:
             # Define the prompt for the AI
             prompt = f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following learning objective: {learning_objective}. Focus on the core skill: {core_skill}. They have {time_availability} hours per week to dedicate."
             
-            # Use the updated OpenAI API to generate a response
-            response = openai.Completion.create(
+            # Use the OpenAI client to generate a response
+            response = client.chat.completions.create(
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
                 model="gpt-4",  # or "gpt-3.5-turbo"
-                prompt=prompt,
-                temperature=0.7,
                 max_tokens=300,
+                temperature=0.7
             )
 
             # Extract and display the learning path
-            learning_path = response['choices'][0]['text'].strip()
+            learning_path = response.choices[0].message["content"].strip()
             st.success("Here’s your personalized learning path:")
             st.write(learning_path)
 
