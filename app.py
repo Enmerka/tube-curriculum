@@ -1,11 +1,20 @@
-import streamlit as st
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
 
-# Initialize the OpenAI client with the API key from the environment
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Load environment variables from .env file
+load_dotenv()
+
+# Fetch API key from environment variable
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
 
 # Streamlit app UI
+import streamlit as st
 st.title("Tube Curriculum: Personalized Learning Path Generator")
 
 # Input form for user data
