@@ -26,22 +26,22 @@ with st.form(key="learning_form"):
 if submitted:
     if learning_objective and core_skill and time_availability:
         with st.spinner("Generating your personalized learning path..."):
-            # Define the prompt
-            prompt = (
-                f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the "
-                f"following learning objective: {learning_objective}. Focus on the core skill: {core_skill}. "
-                f"They have {time_availability} hours per week to dedicate."
-            )
+            # Define the messages for the ChatGPT model
+            messages = [
+                {"role": "system", "content": "You are an AI assistant that creates structured learning paths using YouTube videos."},
+                {"role": "user", 
+                 "content": f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following learning objective: {learning_objective}. "
+                            f"Focus on the core skill: {core_skill}. They have {time_availability} hours per week to dedicate."}
+            ]
 
-            # Call OpenAI API
             try:
-                response = openai.Completion.create(
-                    engine="text-davinci-003",
-                    prompt=prompt,
-                    max_tokens=1500,
+                # Call OpenAI ChatCompletion API
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",  # You can use "gpt-3.5-turbo" if GPT-4 isn't available
+                    messages=messages,
                     temperature=0.7,
                 )
-                learning_path = response["choices"][0]["text"]
+                learning_path = response["choices"][0]["message"]["content"]
                 st.success("Here’s your personalized learning path:")
                 st.write(learning_path)
 
@@ -49,3 +49,4 @@ if submitted:
                 st.error(f"An error occurred: {e}")
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
+
