@@ -22,15 +22,15 @@ if submitted:
             prompt = f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following learning objective: {learning_objective}. Focus on the core skill: {core_skill}. They have {time_availability} hours per week to dedicate."
             
             # Call the OpenAI API
-            response = client.chat.completions.create(
+            response = client.completions.create(
                 model="gpt-4",  # or "gpt-3.5-turbo"
-                messages=[{"role": "user", "content": prompt}],
+                prompt=prompt,
                 temperature=0.7,
                 max_tokens=300,
             )
 
             # Extract and display the learning path
-            learning_path = response.choices[0].text.strip()
+            learning_path = response.choices[0]["text"].strip()
             st.success("Here’s your personalized learning path:")
             st.write(learning_path)
 
