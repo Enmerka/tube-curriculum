@@ -2,7 +2,7 @@ import streamlit as st
 from openai import OpenAI
 
 # Set up OpenAI client
-client = OpenAI(api_key="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")  # Replace with your actual OpenAI API key
+client = OpenAI(api_key="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")  # Replace with your actual OpenAI API key
 
 # Streamlit app UI
 st.title("Tube Curriculum: Personalized Learning Path Generator")
