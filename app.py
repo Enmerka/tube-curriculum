@@ -22,4 +22,4 @@ with st.form("user_input_form"):
 
 # Process Input
 if submitted:
-    if learning_objective and core_skill 
+    if learning_objective and core_skill and time_availability:
