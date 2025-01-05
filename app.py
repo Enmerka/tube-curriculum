@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 
 # Set your OpenAI API key here
-openai.api_key = "YOUR_OPENAI_API_KEY"  # Replace with your actual OpenAI API key
+openai.api_key = "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"  # Replace with your actual OpenAI API key
 
 # Title of the app
 st.title("Tube Curriculum: Personalized Learning Path Generator")
