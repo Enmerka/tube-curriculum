@@ -22,12 +22,4 @@ with st.form("user_input_form"):
 
 # Process Input
 if submitted:
-    if learning_objective and core_skill and time_availability:
-        # OpenAI Prompt
-        prompt = f"""
-        Create a structured learning path and YouTube playlist for someone who wants to achieve the following learning objective: {learning_objective}.
-        Focus on the core skill: {core_skill}. They have {time_availability} hours per week to dedicate.
-        Provide step-by-step guidance and suggest high-quality YouTube videos for each step.
-        """
-        try:
-    
+    if learning_objective and core_skill 
