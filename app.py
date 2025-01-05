@@ -2,7 +2,7 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Load environment variables (for local dev purposes)
 load_dotenv()
 
 # Fetch API key from environment variable
@@ -33,9 +33,7 @@ if submitted:
             
             # Use the OpenAI client to generate a response
             response = client.chat.completions.create(
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
                 model="gpt-4",  # or "gpt-3.5-turbo"
                 max_tokens=300,
                 temperature=0.7
