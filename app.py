@@ -47,29 +47,39 @@ if submitted:
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
 
+# Add a left-aligned section with a light blue background and a logo
 st.markdown("""
     <style>
-        .header-section {
-            background-color: #f4f4f9;  /* Light grey background */
+        .container {
+            display: flex;
+            width: 100%;
+        }
+        .left-section {
+            width: 50%;
+            background-color: #add8e6;  /* Light blue background */
             padding: 20px;
             border-radius: 10px;
-            width: 300px;  /* Fixed width */
-            text-align: left;  /* Align text to the left */
-            margin-bottom: 20px;  /* Space at the bottom */
+            text-align: center;
         }
         .logo {
             width: 100px;  /* Adjust logo size */
-            display: block;
-            margin-bottom: 10px;  /* Space below the logo */
         }
         .section-text {
-            font-size: 16px;
+            font-size: 18px;
             color: #333;
-            line-height: 1.6;
+        }
+        .right-section {
+            width: 50%;
+            padding: 20px;
         }
     </style>
-    <div class="header-section">
-        <img src="https://your-logo-url.com/logo.png" alt="Logo" class="logo">
-        <p class="section-text">Welcome to Tube Curriculum! Personalize your learning journey with free YouTube resources.</p>
+    <div class="container">
+        <div class="left-section">
+            <img src="https://your-logo-url.com/logo.png" alt="Logo" class="logo">
+            <p class="section-text">Welcome to Tube Curriculum! Personalize your learning journey with free YouTube resources.</p>
+        </div>
+        <div class="right-section">
+            <!-- This section will contain the rest of your app content -->
+        </div>
     </div>
 """, unsafe_allow_html=True)
