@@ -38,11 +38,11 @@ if submitted:
                 )
 
                 # Extract and display the learning path
-                learning_path = response["choices"][0]["message"]["content"].strip()
+                learning_path = response.choices[0].message["content"].strip()
                 st.success("Here’s your personalized learning path:")
                 st.write(learning_path)
 
-            except openai.error.OpenAIError as e:
+            except Exception as e:  # Handle any exceptions generically
                 st.error(f"An error occurred: {str(e)}")
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
