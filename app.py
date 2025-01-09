@@ -46,3 +46,26 @@ if submitted:
                 st.error(f"An error occurred: {str(e)}")
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
+
+# Add a colored section with logo and text
+st.markdown("""
+    <style>
+        .header-section {
+            background-color: #f4f4f9;  /* Light grey background */
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .logo {
+            width: 100px;  /* Adjust logo size */
+        }
+        .section-text {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+    <div class="header-section">
+        <img src="https://your-logo-url.com/logo.png" alt="Logo" class="logo">
+        <p class="section-text">Welcome to Tube Curriculum! Personalize your learning journey with free YouTube resources.</p>
+    </div>
+""", unsafe_allow_html=True)
