@@ -1,8 +1,8 @@
 import streamlit as st
-from openai import OpenAI
+import openai  # Import the OpenAI library
 
-# Set up OpenAI client
-openai_api_key = st.secrets["OPENAI_API_KEY"]
+# Set up OpenAI API key
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # Streamlit app UI
 st.title("Tube Curriculum: Personalized Learning Path Generator")
@@ -18,21 +18,31 @@ with st.form(key="learning_form"):
 if submitted:
     if learning_objective and core_skill and time_availability:
         with st.spinner("Generating your personalized learning path..."):
-            # Define the prompt for the AI
-            prompt = f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following learning objective: {learning_objective}. Focus on the core skill: {core_skill}. They have {time_availability} hours per week to dedicate."
-            
-            # Call the OpenAI API
-            response = client.chat.completions.create(
-                model="gpt-4",  # or "gpt-3.5-turbo"
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=300,
-            )
+            try:
+                # Define the prompt for the AI
+                prompt = (
+                    f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following "
+                    f"learning objective: {learning_objective}. Focus on the core skill: {core_skill}. "
+                    f"They have {time_availability} hours per week to dedicate."
+                )
 
-            # Extract and display the learning path
-            learning_path = response.choices[0].text.strip()
-            st.success("Here’s your personalized learning path:")
-            st.write(learning_path)
+                # Call the OpenAI API
+                response = openai.ChatCompletion.create(
+                    model="gpt-4",  # Use GPT-4 or GPT-3.5-turbo
+                    messages=[
+                        {"role": "system", "content": "You are an expert curriculum designer."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=300,
+                )
 
+                # Extract and display the learning path
+                learning_path = response["choices"][0]["message"]["content"].strip()
+                st.success("Here’s your personalized learning path:")
+                st.write(learning_path)
+
+            except openai.error.OpenAIError as e:
+                st.error(f"An error occurred: {str(e)}")
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
