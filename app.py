@@ -30,7 +30,7 @@ if submitted:
                 response = client.chat.completions.create(
                     model="gpt-4",  # Use GPT-4 or GPT-3.5-turbo
                     messages=[
-                        {"role": "system", "content": "You are an expert curriculum and instructional designer who doesn't just recommend lessons but adds the link to the youtube video, the thumbnail, states what wil be learned from the video and crafts assignments which are attached to each lesson."},
+                        {"role": "system", "content": "You are an expert curriculum and instructional designer who doesn't just recommend lessons but adds the link to the youtube video."},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.7,
