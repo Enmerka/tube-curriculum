@@ -47,21 +47,25 @@ if submitted:
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
 
-# Add a colored section with logo and text
 st.markdown("""
     <style>
         .header-section {
             background-color: #f4f4f9;  /* Light grey background */
             padding: 20px;
             border-radius: 10px;
-            text-align: center;
+            width: 300px;  /* Fixed width */
+            text-align: left;  /* Align text to the left */
+            margin-bottom: 20px;  /* Space at the bottom */
         }
         .logo {
             width: 100px;  /* Adjust logo size */
+            display: block;
+            margin-bottom: 10px;  /* Space below the logo */
         }
         .section-text {
-            font-size: 18px;
+            font-size: 16px;
             color: #333;
+            line-height: 1.6;
         }
     </style>
     <div class="header-section">
