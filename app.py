@@ -1,8 +1,8 @@
 import streamlit as st
-import openai  # Import the OpenAI library
+from openai import OpenAI  # Import the updated OpenAI client class
 
-# Set up OpenAI API key
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Initialize the OpenAI client
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Streamlit app UI
 st.title("Tube Curriculum: Personalized Learning Path Generator")
@@ -26,8 +26,8 @@ if submitted:
                     f"They have {time_availability} hours per week to dedicate."
                 )
 
-                # Call the OpenAI API
-                response = openai.ChatCompletion.create(
+                # Call the OpenAI API using the new syntax
+                response = client.chat.completions.create(
                     model="gpt-4",  # Use GPT-4 or GPT-3.5-turbo
                     messages=[
                         {"role": "system", "content": "You are an expert curriculum designer."},
@@ -38,11 +38,11 @@ if submitted:
                 )
 
                 # Extract and display the learning path
-                learning_path = response.choices[0].message["content"].strip()
+                learning_path = response.choices[0].message.content.strip()
                 st.success("Here’s your personalized learning path:")
                 st.write(learning_path)
 
-            except Exception as e:  # Handle any exceptions generically
+            except Exception as e:  # Use generic exception handling for errors
                 st.error(f"An error occurred: {str(e)}")
     else:
         st.warning("Please fill in all the fields to generate your learning path.")
