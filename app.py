@@ -1,107 +1,104 @@
 import streamlit as st
-from openai import OpenAI
-from google.oauth2.credentials import Credentials
+import openai
+import google.oauth2.credentials
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+import json
 import datetime
-import re
 
-# Initialize the OpenAI client
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Set OpenAI API key from secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# Streamlit app UI
-st.title("Tube Curriculum: Personalized Learning Path Generator with Google Calendar Integration")
+# Google API setup
+SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+CREDENTIALS = json.loads(st.secrets["GOOGLE_CREDENTIALS"])["web"]
 
-# Input form for user data
-with st.form(key="learning_form"):
-    learning_objective = st.text_input("What is your learning objective?")
-    core_skill = st.text_input("What core skill do you want to learn?")
-    time_availability = st.number_input("How many hours per week can you dedicate?", min_value=1, step=1)
-    submitted = st.form_submit_button("Generate Learning Path")
+# Function to authenticate the user with Google
+def google_auth_flow():
+    flow = Flow.from_client_config(CREDENTIALS, scopes=SCOPES)
+    flow.redirect_uri = st.experimental_get_query_params().get("redirect_uri", [None])[0]
+    auth_url, _ = flow.authorization_url(prompt="consent")
+    return auth_url
 
-# Authenticate with Google Calendar
-def authenticate_google_calendar():
-    credentials = None
-    if "token.json" in st.secrets:  # Load credentials from Streamlit secrets
-        credentials = Credentials.from_authorized_user_info(st.secrets["token.json"], scopes=["https://www.googleapis.com/auth/calendar"])
+def google_auth_callback():
+    flow = Flow.from_client_config(CREDENTIALS, scopes=SCOPES)
+    flow.redirect_uri = st.experimental_get_query_params()["redirect_uri"][0]
+    flow.fetch_token(authorization_response=st.experimental_get_query_params()["url"][0])
+    return flow.credentials
+
+# Function to add events to Google Calendar
+def add_video_to_calendar(credentials, video_title, video_link, start_time):
+    service = build('calendar', 'v3', credentials=credentials)
+
+    event = {
+        'summary': video_title,
+        'description': f'Watch this video: {video_link}',
+        'start': {
+            'dateTime': start_time.isoformat(),
+            'timeZone': 'UTC',
+        },
+        'end': {
+            'dateTime': (start_time + datetime.timedelta(hours=1)).isoformat(),
+            'timeZone': 'UTC',
+        },
+    }
+    event_result = service.events().insert(calendarId='primary', body=event).execute()
+    return event_result
+
+# Streamlit UI
+st.title("YouTube Curriculum Organizer with Calendar Integration")
+
+# Step 1: Enter the topic
+topic = st.text_input("Enter the topic you want to learn about:", "")
+
+if topic:
+    # Step 2: Generate YouTube video recommendations
+    st.write("Generating video recommendations...")
+
+    # Prompt OpenAI to recommend videos
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that recommends YouTube videos."},
+            {"role": "user", "content": f"Recommend 5 YouTube videos about {topic}, each with a title, description, and link."}
+        ],
+        max_tokens=500,
+    )
+
+    video_recommendations = json.loads(response['choices'][0]['message']['content'])
+    st.write("Here are the recommended videos:")
+    for idx, video in enumerate(video_recommendations, start=1):
+        st.write(f"**{idx}. {video['title']}**")
+        st.write(f"Description: {video['description']}")
+        st.write(f"Link: [Watch Video]({video['link']})")
+
+    # Step 3: Authenticate Google Calendar
+    st.write("---")
+    st.write("### Add Videos to Your Google Calendar")
+    if "google_credentials" not in st.session_state:
+        auth_url = google_auth_flow()
+        st.markdown(f"[Authenticate with Google]({auth_url})")
     else:
-        st.error("Google Calendar API credentials are missing!")
-    return credentials
+        credentials = google.oauth2.credentials.Credentials(**st.session_state["google_credentials"])
+        video_to_add = st.selectbox("Select a video to add to your calendar:", [f"{video['title']} - {video['link']}" for video in video_recommendations])
+        selected_video = video_recommendations[[f"{video['title']} - {video['link']}" for video in video_recommendations].index(video_to_add)]
+        start_time = st.date_input("Select a date and time for the event:", value=datetime.datetime.now())
+        if st.button("Add to Calendar"):
+            result = add_video_to_calendar(credentials, selected_video['title'], selected_video['link'], start_time)
+            st.success(f"Event added to Google Calendar: {result.get('htmlLink')}")
 
-# Add events to Google Calendar
-def add_events_to_calendar(events):
-    credentials = authenticate_google_calendar()
-    if not credentials:
-        return
-
-    service = build("calendar", "v3", credentials=credentials)
-
-    # Create events in the user's primary calendar
-    for event in events:
-        event_body = {
-            "summary": event["title"],
-            "description": event["description"],
-            "start": {"dateTime": event["start"], "timeZone": "UTC"},
-            "end": {"dateTime": event["end"], "timeZone": "UTC"},
+# Handle OAuth callback
+if "url" in st.experimental_get_query_params():
+    try:
+        credentials = google_auth_callback()
+        st.session_state["google_credentials"] = {
+            'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes
         }
-        service.events().insert(calendarId="primary", body=event_body).execute()
-
-# Handle form submission
-if submitted:
-    if learning_objective and core_skill and time_availability:
-        with st.spinner("Generating your personalized learning path..."):
-            try:
-                # Define the prompt for the AI
-                prompt = (
-                    f"Create a step-by-step learning path using free YouTube videos for someone who wants to achieve the following "
-                    f"learning objective: {learning_objective}. Focus on the core skill: {core_skill}. "
-                    f"They have {time_availability} hours per week to dedicate. Include video links."
-                )
-
-                # Call the OpenAI API using the new syntax
-                response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "You are an expert curriculum designer."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=1000,
-                )
-
-                # Extract the learning path and parse videos
-                learning_path = response.choices[0].message.content.strip()
-                st.success("Here’s your personalized learning path:")
-                st.write(learning_path)
-
-                # Extract video titles and links using regex
-                video_pattern = re.compile(r"(.+?)\s*-\s*(https?://\S+)")
-                videos = video_pattern.findall(learning_path)
-
-                if videos:
-                    st.write("Extracted videos:")
-                    for i, (title, link) in enumerate(videos, start=1):
-                        st.markdown(f"{i}. [{title}]({link})")
-
-                    # Prepare events for Google Calendar
-                    now = datetime.datetime.utcnow()
-                    events = []
-                    for i, (title, link) in enumerate(videos):
-                        start_time = now + datetime.timedelta(days=i)
-                        end_time = start_time + datetime.timedelta(hours=1)  # Assume 1 hour per video
-                        events.append({
-                            "title": title,
-                            "description": f"Watch this video: {link}",
-                            "start": start_time.isoformat() + "Z",
-                            "end": end_time.isoformat() + "Z",
-                        })
-
-                    # Add events to Google Calendar
-                    add_events_to_calendar(events)
-                    st.success("Videos have been added to your Google Calendar!")
-                else:
-                    st.warning("No videos found in the generated learning path.")
-
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
-    else:
-        st.warning("Please fill in all the fields to generate your learning path.")
+        st.success("Google authentication successful! Refresh the page to continue.")
+    except Exception as e:
+        st.error(f"Error during Google authentication: {e}")
